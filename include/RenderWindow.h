@@ -2,11 +2,12 @@
 #define SIMPLEOBJVIEWER_RENDERWINDOW_H
 
 #include <BasicWindow.h>
+#include <IGlfwCallbacks.h>
 #include <ObjModel.h>
 
 #include <glm/glm.hpp>
 
-class RenderWindow : public virtual BasicWindow{
+class RenderWindow : public virtual IGlfwCallbacks, public virtual BasicWindow{
 protected:
     static const int numVAOs = 1;   // one array for one object
     static const int numVBOs = 3;   // vertices, vertices normals and vertices texture map
@@ -35,6 +36,14 @@ protected:
     // number of triangles to draw
     int trianglesNumber = 0;
 
+    //mouse variables
+    bool isPanOn = false;
+    bool isRotateOn = false;
+    float xAxisAngle, yAxisAngle;
+    glm::vec3 mouseDisplacement;
+    glm::vec<2, double> oldMousePosition;
+    const float R = 100;
+
     void fillBuffers(const ObjModel& objModel);
 
     void display() override;
@@ -45,6 +54,14 @@ public:
     bool init() override;
 
     void run(const ObjModel& objModel);
+
+    void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) override;
+
+    void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) override;
+
+    void mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset) override;
+
+    void windowSizeChangedCallback(GLFWwindow *window, int width, int height) override;
 
 private:
     using BasicWindow::run;

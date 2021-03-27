@@ -1,6 +1,7 @@
 #include <RenderWindow.h>
 
 #include <Utils.h>
+#include <RenderWindowCallbacksManager.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,6 +15,17 @@ RenderWindow::RenderWindow()
 
 bool RenderWindow::init() {
     bool statusValue = BasicWindow::init();
+
+    RenderWindowCallbacksManager::getInstance()->setCallbacksHandler(this);
+
+    // attach mouse event to callbacks
+    //  set mouse functions
+    glfwSetCursorPosCallback(window, RenderWindowCallbacksManager::cursorPositionCallback);
+    glfwSetMouseButtonCallback(window, RenderWindowCallbacksManager::mouseButtonCallback);
+    glfwSetScrollCallback(window, RenderWindowCallbacksManager::mouseScrollCallback);
+
+    //  set callback for window size changed
+    glfwSetWindowSizeCallback(window, RenderWindowCallbacksManager::windowSizeChangedCallback);
 
     // create rendering program
     renderingProgram = Utils::createShaderProgram(vertexShaderPath,
@@ -94,6 +106,9 @@ void RenderWindow::display() {
     //build model matrix
     mMatrix = glm::translate(glm::mat4(1), objectPosition);
 
+    mMatrix *= glm::rotate(glm::mat4(1), xAxisAngle, glm::vec3(1,0,0)); //rotation on angle x
+    mMatrix *= glm::rotate(glm::mat4(1), yAxisAngle, glm::vec3(0,1,0)); //rotation on angle y
+
     mInvTrMatrix = glm::transpose(glm::inverse(mMatrix));
 
     //build mvpMatrix
@@ -121,5 +136,68 @@ void RenderWindow::display() {
 
     //drawing object
     glDrawArrays(GL_TRIANGLES, 0, trianglesNumber);
+}
+
+void RenderWindow::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
+    if(isPanOn){
+        //compute the displacement
+        auto xDis = oldMousePosition.x-xpos;
+        mouseDisplacement.x = xDis/100;
+        auto yDis = ypos - oldMousePosition.y;
+        mouseDisplacement.y = yDis/100;
+
+        objectPosition -= mouseDisplacement;
+
+        //update old position
+        oldMousePosition.x = xpos;
+        oldMousePosition.y = ypos;
+    }
+    else if(isRotateOn){
+        //compute the displacement
+        auto xDis = oldMousePosition.x-xpos;
+        auto yDis = ypos - oldMousePosition.y;
+
+        xAxisAngle += (float)yDis/R;
+        yAxisAngle -= (float)xDis/R;
+
+        //update old position
+        oldMousePosition.x = xpos;
+        oldMousePosition.y = ypos;
+    }
+}
+
+void RenderWindow::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT){
+        if(action == GLFW_PRESS){
+            glfwGetCursorPos(window, &oldMousePosition.x,
+                             &oldMousePosition.y);
+            isPanOn = true;
+        }else if(action == GLFW_RELEASE){
+            isPanOn = false;
+        }
+    }
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT){
+        if(action == GLFW_PRESS){
+            glfwGetCursorPos(window, &oldMousePosition.x,
+                             &oldMousePosition.y);
+            isRotateOn = true;
+        }else if(action == GLFW_RELEASE){
+            isRotateOn = false;
+        }
+    }
+    else if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS){
+        objectPosition.x = objectPosition.y = objectPosition.z = 0;
+        xAxisAngle = yAxisAngle = 0;
+    }
+}
+
+void RenderWindow::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+    objectPosition.z += yoffset;
+}
+
+void RenderWindow::windowSizeChangedCallback(GLFWwindow *window, int width, int height) {
+    float aspect = (float)width/(float)height;
+    pMatrix = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+    glViewport( 0, 0, width, height);
 }
 
