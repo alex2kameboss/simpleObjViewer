@@ -11,6 +11,9 @@ find_package(glfw3 REQUIRED)
 
 find_package(GLEW REQUIRED)
 
-add_executable(simpleObjViewer main.cpp include/BasicWindow.h src/BasicWindow.cpp)
+find_package(glm REQUIRED)
+
+
+add_executable(simpleObjViewer main.cpp include/BasicWindow.h src/BasicWindow.cpp include/ObjModel.h src/ObjModel.cpp)
 
 target_link_libraries(simpleObjViewer glfw OpenGL::GL GLEW::GLEW)
