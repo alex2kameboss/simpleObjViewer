@@ -1,6 +1,11 @@
-#include <iostream>
+#include <BasicWindow.h>
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    BasicWindow window("Simple OBJ Viewer");
+
+    if(window.init()){
+        window.run();
+    }
+
     return 0;
 }
