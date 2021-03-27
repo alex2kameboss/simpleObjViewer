@@ -21,7 +21,7 @@ bool BasicWindow::init() {
 
     if(window == nullptr){
         std::cout << "Failed to create glfw window" << std::endl;
-        return -1;
+        return false;
     }
 
     // bind opengl to this window

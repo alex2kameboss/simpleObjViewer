@@ -1,10 +1,15 @@
-#include <BasicWindow.h>
+#include <RenderWindow.h>
+#include <ObjModel.h>
 
 int main() {
-    BasicWindow window("Simple OBJ Viewer");
+    ObjModel obj("../objModels/cube_triangulated.obj");
+    if (!obj.load())
+        return -1;
+
+    RenderWindow window;
 
     if(window.init()){
-        window.run();
+        window.run(obj);
     }
 
     return 0;
